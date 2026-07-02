@@ -38,6 +38,8 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
+          cache: 'pip'
+          cache-dependency-path: requirements.txt
 
       - name: Install tkinter (Linux only)
         if: runner.os == 'Linux'
@@ -46,7 +48,7 @@ jobs:
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pypdf pyinstaller
+          pip install -r requirements.txt
 
       - name: Build with PyInstaller
         run: pyinstaller -F -w --name "${{ matrix.base_name }}" pdf_split_gui.py
