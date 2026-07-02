@@ -17,10 +17,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -40,7 +40,7 @@ jobs:
           (Get-Item dist/pdf-splitter-windows-x64.exe).Length
 
       - name: Upload exe as workflow artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pdf-splitter-windows-x64
           path: dist/pdf-splitter-windows-x64.exe
@@ -48,7 +48,7 @@ jobs:
       # 只有在打 tag 时才发 Release
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: dist/pdf-splitter-windows-x64.exe
           generate_release_notes: true
