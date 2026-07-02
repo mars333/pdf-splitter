@@ -5,6 +5,7 @@
 
 import sys
 import threading
+import time
 import traceback
 from pathlib import Path
 from tkinter import Tk, StringVar, filedialog, messagebox, ttk
@@ -208,21 +209,38 @@ class PdfSplitApp:
         ).start()
 
     def _do_split(self, src: Path, pages: str, dst: Path) -> None:
+        start = time.perf_counter()
         try:
             written = split_pdf(src, pages, dst)
-            self.root.after(0, self._on_success, dst, written)
+            elapsed_ms = (time.perf_counter() - start) * 1000
+            self.root.after(0, self._on_success, dst, written, elapsed_ms)
         except Exception as e:
             tb = traceback.format_exc()
             self.root.after(0, self._on_failure, e, tb)
 
-    def _on_success(self, dst: Path, written: list[int]) -> None:
+    def _on_success(self, dst: Path, written: list[int], elapsed_ms: float) -> None:
         self.run_btn.config(state="normal")
-        self.status_var.set(f"完成: {dst}  (共 {len(written)} 页)")
+        elapsed_text = self._format_elapsed(elapsed_ms)
+        self.status_var.set(f"完成: {dst}  (共 {len(written)} 页, 耗时 {elapsed_text})")
         if messagebox.askyesno(
             "完成",
-            f"已生成:\n{dst}\n\n实际写入页码: {written}\n\n是否打开所在文件夹?",
+            f"已生成:\n{dst}\n\n"
+            f"实际写入页码: {written}\n"
+            f"耗时: {elapsed_text}\n\n"
+            "是否打开所在文件夹?",
         ):
             self._open_folder(dst.parent)
+
+    @staticmethod
+    def _format_elapsed(ms: float) -> str:
+        """把毫秒格式化成易读文本,保留毫秒精度。"""
+        if ms < 1000:
+            return f"{ms:.2f} ms"
+        seconds = ms / 1000
+        if seconds < 60:
+            return f"{seconds:.3f} s ({ms:.0f} ms)"
+        minutes, sec = divmod(seconds, 60)
+        return f"{int(minutes)} min {sec:.3f} s ({ms:.0f} ms)"
 
     def _on_failure(self, err: Exception, tb: str) -> None:
         self.run_btn.config(state="normal")
